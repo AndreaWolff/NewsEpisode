@@ -3,8 +3,8 @@ package nz.co.newsepisodes
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
-import nz.co.newsepisodes.common.repo.EpisodeRepositoryImpl
 import nz.co.newsepisodes.common.model.Episode
+import nz.co.newsepisodes.common.repo.EpisodeRepositoryImpl
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
@@ -45,9 +45,9 @@ class EpisodeRepositoryImplTest {
 
     @Test
     fun search_returnsFilteredResults() = runTest {
-        whenever(repository.search("Politics")).thenReturn(flowOf(listOf(sampleEpisode)))
+        whenever(repository.search("Politics")).thenReturn(listOf(sampleEpisode))
 
-        val result = repository.search("Politics").first()
+        val result = repository.search("Politics")
 
         assertEquals(1, result.size)
         verify(repository).search("Politics")
@@ -55,9 +55,9 @@ class EpisodeRepositoryImplTest {
 
     @Test
     fun search_emptyQuery_returnsAll() = runTest {
-        whenever(repository.search("")).thenReturn(flowOf(listOf(sampleEpisode, sampleEpisode)))
+        whenever(repository.search("")).thenReturn(listOf(sampleEpisode, sampleEpisode))
 
-        val result = repository.search("").first()
+        val result = repository.search("")
 
         assertEquals(2, result.size)
         verify(repository).search("")
@@ -65,9 +65,9 @@ class EpisodeRepositoryImplTest {
 
     @Test
     fun getEpisode_existingId_returnsEpisode() = runTest {
-        whenever(repository.getEpisode("1")).thenReturn(flowOf(sampleEpisode))
+        whenever(repository.getEpisode("1")).thenReturn(sampleEpisode)
 
-        val result = repository.getEpisode("1").first()
+        val result = repository.getEpisode("1")
 
         assertEquals("Morning Briefing", result?.title)
         verify(repository).getEpisode("1")
@@ -75,9 +75,9 @@ class EpisodeRepositoryImplTest {
 
     @Test
     fun getEpisode_unknownId_returnsNull() = runTest {
-        whenever(repository.getEpisode("999")).thenReturn(flowOf(null))
+        whenever(repository.getEpisode("999")).thenReturn(null)
 
-        val result = repository.getEpisode("999").first()
+        val result = repository.getEpisode("999")
 
         assertNull(result)
         verify(repository).getEpisode("999")

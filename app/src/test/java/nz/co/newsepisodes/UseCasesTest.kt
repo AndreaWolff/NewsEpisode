@@ -54,19 +54,20 @@ class UseCasesTest {
 
     @Test
     fun searchEpisodesUseCase_delegatesToRepository() = runTest {
-        whenever(repository.search("query")).thenReturn(flowOf(listOf(sampleEpisode)))
+        whenever(repository.search("query")).thenReturn(listOf(sampleEpisode))
 
-        val result = searchEpisodes("query").first()
+        val result = searchEpisodes("query")
 
         assertEquals(1, result.size)
+        assertEquals("Test", result.first().title)
         verify(repository).search("query")
     }
 
     @Test
     fun getEpisodeUseCase_delegatesToRepository() = runTest {
-        whenever(repository.getEpisode("1")).thenReturn(flowOf(sampleEpisode))
+        whenever(repository.getEpisode("1")).thenReturn(sampleEpisode)
 
-        val result = getEpisode("1").first()
+        val result = getEpisode("1")
 
         assertEquals("Test", result?.title)
         verify(repository).getEpisode("1")
