@@ -8,8 +8,8 @@ import nz.co.newsepisodes.common.model.Episode
 
 interface EpisodeRepository {
     fun getEpisodes(): Flow<List<Episode>>
-    fun search(query: String): Flow<List<Episode>>
-    fun getEpisode(id: String): Flow<Episode?>
+    suspend fun search(query: String): List<Episode>
+    suspend fun getEpisode(id: String): Episode?
     suspend fun toggleSaved(id: String)
 }
 
@@ -77,13 +77,12 @@ class EpisodeRepositoryImpl : EpisodeRepository {
         )
     )
 
-    override fun getEpisodes(): Flow<List<Episode>> = allEpisodes.map { list ->
-        list
-    }
+    override fun getEpisodes(): Flow<List<Episode>> = allEpisodes.map { list -> list }
 
-    override fun search(query: String): Flow<List<Episode>> = allEpisodes.map { list ->
+    override suspend fun search(query: String): List<Episode> {
         val value = query.trim().lowercase()
-        if (value.isEmpty()) {
+        val list = allEpisodes.value
+        return if (value.isEmpty()) {
             list
         } else {
             list.filter {
@@ -94,9 +93,8 @@ class EpisodeRepositoryImpl : EpisodeRepository {
         }
     }
 
-    override fun getEpisode(id: String): Flow<Episode?> = allEpisodes.map { list ->
-        list.find { it.id == id }
-    }
+    override suspend fun getEpisode(id: String): Episode? =
+        allEpisodes.value.find { it.id == id }
 
     override suspend fun toggleSaved(id: String) {
         allEpisodes.update { list ->

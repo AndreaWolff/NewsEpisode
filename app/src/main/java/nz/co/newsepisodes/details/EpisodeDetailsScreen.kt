@@ -56,7 +56,10 @@ fun EpisodeDetailsScreen(
                         onClick = viewModel::onSavedClicked,
                         modifier = Modifier.testTag("save_button")
                     ) {
-                        val isSaved = (uiState as? EpisodeDetailUiState.Success)?.episode?.isSaved == true
+                        val isSaved = when (val content = uiState.status) {
+                            is EpisodeDetailUiState.DetailStatus.Success -> content.episode.isSaved
+                            else -> false
+                        }
                         Icon(
                             painter = if (isSaved) painterResource(R.drawable.baseline_favorite_24) else painterResource(
                                 R.drawable.outline_favorite_24
@@ -78,14 +81,13 @@ fun EpisodeDetailsScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            when (val state = uiState) {
-                is EpisodeDetailUiState.Error -> Text(
+            when (val state = uiState.status) {
+                is EpisodeDetailUiState.DetailStatus.Error -> Text(
                     state.message,
                     style = MaterialTheme.typography.bodyLarge
                 )
-
-                EpisodeDetailUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.CenterHorizontally))
-                is EpisodeDetailUiState.Success -> EpisodeDetailContent(
+                is EpisodeDetailUiState.DetailStatus.Loading -> CircularProgressIndicator(Modifier.align(Alignment.CenterHorizontally))
+                is EpisodeDetailUiState.DetailStatus.Success -> EpisodeDetailContent(
                     state.episode
                 )
             }

@@ -24,5 +24,7 @@ val appModule = module {
     factory<ToggleSavedUseCase> { ToggleSavedUseCaseImpl(get()) }
 
     viewModel { EpisodeViewModel(get(), get()) }
-    viewModel { EpisodeDetailsViewModel(get(), get(), get()) }
+    viewModel { params ->
+        EpisodeDetailsViewModel(params.get(), get(), get())
+    }
 }

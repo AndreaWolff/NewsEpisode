@@ -48,14 +48,20 @@ fun EpisodesScreen(
     viewModel: EpisodeViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val currentQuery = (uiState as? EpisodeUiState.Success)?.query ?: ""
+    val currentQuery = uiState.query
 
     val textFieldState = rememberTextFieldState(currentQuery)
     val searchBarState = rememberSearchBarState()
 
-    LaunchedEffect(currentQuery) {
-        if (textFieldState.text.toString() != currentQuery) {
-            textFieldState.edit { replace(0, length, currentQuery) }
+    LaunchedEffect(Unit) {
+        viewModel.clearSearch()
+    }
+
+    LaunchedEffect(uiState.query) {
+        if (textFieldState.text.toString() != uiState.query) {
+            textFieldState.edit {
+                replace(0, length, uiState.query)
+            }
         }
     }
 
@@ -106,16 +112,15 @@ fun EpisodesScreen(
 
         Spacer(Modifier.height(16.dp))
 
-        when (val state = uiState) {
-            is EpisodeUiState.Loading -> LoadingContent()
-            is EpisodeUiState.Error -> ErrorContent(
+        when (val state = uiState.status) {
+            is EpisodeUiState.Status.Loading -> LoadingContent()
+            is EpisodeUiState.Status.Error -> ErrorContent(
                 message = state.message,
                 onRetry = viewModel::retry
             )
-
-            is EpisodeUiState.Success -> {
+            is EpisodeUiState.Status.Success -> {
                 when {
-                    state.episodes.isEmpty() -> EmptyContent(query = state.query)
+                    state.episodes.isEmpty() -> EmptyContent(query = uiState.query)
                     else -> EpisodeList(
                         episodes = state.episodes,
                         onEpisodeClick = onEpisodeClick
@@ -170,7 +175,7 @@ private fun EmptyContent(query: String) {
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = if (query.isBlank()) "No episodes available" else "No results for \"query\"",
+            text = if (query.isBlank()) "No episodes available" else "No results for \"$query\"",
             style = MaterialTheme.typography.bodyLarge
         )
     }

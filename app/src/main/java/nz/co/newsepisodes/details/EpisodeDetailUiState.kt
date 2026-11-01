@@ -2,8 +2,12 @@ package nz.co.newsepisodes.details
 
 import nz.co.newsepisodes.common.model.Episode
 
-sealed interface EpisodeDetailUiState {
-    data object Loading: EpisodeDetailUiState
-    data class Success(val episode: Episode): EpisodeDetailUiState
-    data class Error(val message: String): EpisodeDetailUiState
+data class EpisodeDetailUiState(
+    val status: DetailStatus = DetailStatus.Loading
+) {
+    sealed interface DetailStatus {
+        object Loading: DetailStatus
+        data class Success(val episode: Episode): DetailStatus
+        data class Error(val message: String): DetailStatus
+    }
 }

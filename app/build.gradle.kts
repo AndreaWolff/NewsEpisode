@@ -12,7 +12,7 @@ android {
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "nz.co.newsepisode"
+        applicationId = "nz.co.newsepisodes"
         minSdk = 26
         targetSdk = 37
         versionCode = 1

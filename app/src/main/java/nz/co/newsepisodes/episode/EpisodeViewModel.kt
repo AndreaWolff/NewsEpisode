@@ -2,23 +2,24 @@ package nz.co.newsepisodes.episode
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import nz.co.newsepisodes.common.usecase.GetEpisodesUseCase
 import nz.co.newsepisodes.common.usecase.SearchEpisodesUseCase
+import kotlin.time.Duration.Companion.milliseconds
 
 class EpisodeViewModel(
     private val getEpisodes: GetEpisodesUseCase,
     private val searchEpisodes: SearchEpisodesUseCase
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow<EpisodeUiState>(EpisodeUiState.Loading)
+    private val _uiState = MutableStateFlow(EpisodeUiState())
     val uiState: StateFlow<EpisodeUiState> = _uiState.asStateFlow()
-
-    private var currentQuery: String = ""
 
     init {
         loadEpisodes()
@@ -26,50 +27,51 @@ class EpisodeViewModel(
 
     fun loadEpisodes() {
         viewModelScope.launch {
-            _uiState.value = EpisodeUiState.Loading
+            _uiState.update { it.copy(status = EpisodeUiState.Status.Loading) }
+
             getEpisodes()
                 .catch { e ->
-                    _uiState.value = EpisodeUiState.Error(
-                        e.message ?: "Something went wrong!"
-                    )
+                    _uiState.update {
+                        it.copy(
+                            status = EpisodeUiState.Status.Error(e.message ?: "Something went wrong")
+                        )
+                    }
                 }
-                .collect { episodes ->
-                    _uiState.value = EpisodeUiState.Success(
-                       episodes = episodes,
-                        query = currentQuery
-                    )
+                .collect { result ->
+                    _uiState.update {
+                        it.copy(
+                            status = EpisodeUiState.Status.Success(result)
+                        )
+                    }
                 }
         }
     }
 
     fun onQueryChanged(query: String) {
-        currentQuery = query
         viewModelScope.launch {
-            val previous = (_uiState.value as? EpisodeUiState.Success)
-            _uiState.value = EpisodeUiState.Success(
-                episodes = previous?.episodes ?: emptyList(),
-                query = query
-            )
+            _uiState.update { it.copy(
+                query = query,
+                status = EpisodeUiState.Status.Loading
+            ) }
 
-            searchEpisodes(query)
-                .catch { e ->
-                    _uiState.value = EpisodeUiState.Error(
-                        e.message ?: "Search Failed"
-                    )
+            delay(300.milliseconds)
+            runCatching { searchEpisodes(query) }
+                .onSuccess { results ->
+                    _uiState.update { it.copy(status = EpisodeUiState.Status.Success(results)) }
                 }
-                .collect { results ->
-                    _uiState.value = EpisodeUiState.Success(
-                        episodes = results,
-                        query = query
-                    )
+                .onFailure { e ->
+                    _uiState.update { it.copy(status = EpisodeUiState.Status.Error(e.message ?: "Search failed")) }
                 }
         }
     }
 
     fun retry() {
-        when {
-            currentQuery.isBlank() -> loadEpisodes()
-            else -> onQueryChanged(currentQuery)
-        }
+        val query = _uiState.value.query
+        if (query.isBlank()) loadEpisodes() else onQueryChanged(query)
+    }
+
+    fun clearSearch() {
+        _uiState.update { it.copy(query = "") }
+        loadEpisodes()
     }
 }

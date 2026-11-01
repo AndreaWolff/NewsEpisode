@@ -50,7 +50,7 @@ class EpisodesJourneyTest {
         composeTestRule.onNodeWithTag("search_field").performTextInput("xyz-not-found")
 
         composeTestRule
-            .onNodeWithText("No results for \"query\"", substring = true)
+            .onNodeWithText("No results for \"xyz-not-found\"", substring = true)
             .assertIsDisplayed()
     }
 }

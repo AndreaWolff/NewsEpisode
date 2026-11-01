@@ -9,11 +9,11 @@ interface GetEpisodesUseCase {
 }
 
 interface SearchEpisodesUseCase {
-    operator fun invoke(query: String): Flow<List<Episode>>
+    suspend operator fun invoke(query: String): List<Episode>
 }
 
 interface GetEpisodeUseCase {
-    operator fun invoke(id: String): Flow<Episode?>
+    suspend operator fun invoke(id: String): Episode?
 }
 
 interface ToggleSavedUseCase {
@@ -29,13 +29,13 @@ class GetEpisodesUseCaseImpl(
 class SearchEpisodesUseCaseImpl(
     private val repository: EpisodeRepository
 ) : SearchEpisodesUseCase {
-    override fun invoke(query: String): Flow<List<Episode>> = repository.search(query)
+    override suspend fun invoke(query: String): List<Episode> = repository.search(query)
 }
 
 class GetEpisodeUseCaseImpl(
     private val repository: EpisodeRepository
 ) : GetEpisodeUseCase {
-    override fun invoke(id: String): Flow<Episode?> = repository.getEpisode(id)
+    override suspend fun invoke(id: String): Episode? = repository.getEpisode(id)
 }
 
 class ToggleSavedUseCaseImpl(
