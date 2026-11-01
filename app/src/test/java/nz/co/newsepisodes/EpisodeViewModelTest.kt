@@ -7,7 +7,6 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
-import nz.co.newsepisodes.common.di.CoroutineDispatchers
 import nz.co.newsepisodes.common.model.Episode
 import nz.co.newsepisodes.common.usecase.GetEpisodesUseCase
 import nz.co.newsepisodes.common.usecase.SearchEpisodesUseCase
@@ -26,12 +25,6 @@ import org.mockito.kotlin.whenever
 @OptIn(ExperimentalCoroutinesApi::class)
 class EpisodeViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
-
-    private val dispatchers = object : CoroutineDispatchers {
-        override val main = testDispatcher
-        override val io = testDispatcher
-        override val default = testDispatcher
-    }
 
     @Mock
     private lateinit var getEpisodes: GetEpisodesUseCase
@@ -61,7 +54,7 @@ class EpisodeViewModelTest {
     fun initialLoad_emitsSuccess() = runTest(testDispatcher) {
         whenever(getEpisodes()).thenReturn(flowOf(sampleEpisodes))
 
-        viewModel = EpisodeViewModel(getEpisodes, searchEpisodes, dispatchers)
+        viewModel = EpisodeViewModel(getEpisodes, searchEpisodes)
         testDispatcher.scheduler.advanceUntilIdle()
 
         val state = viewModel.uiState.value
@@ -75,7 +68,7 @@ class EpisodeViewModelTest {
         whenever(getEpisodes()).thenReturn(flowOf(sampleEpisodes))
         whenever(searchEpisodes("test")).thenReturn(listOf(sampleEpisodes.first()))
 
-        viewModel = EpisodeViewModel(getEpisodes, searchEpisodes, dispatchers)
+        viewModel = EpisodeViewModel(getEpisodes, searchEpisodes)
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.onQueryChanged("test")
@@ -92,7 +85,7 @@ class EpisodeViewModelTest {
         whenever(getEpisodes()).thenReturn(flowOf(sampleEpisodes))
         whenever(searchEpisodes("fail")).thenThrow(RuntimeException("Search failed"))
 
-        viewModel = EpisodeViewModel(getEpisodes, searchEpisodes, dispatchers)
+        viewModel = EpisodeViewModel(getEpisodes, searchEpisodes)
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.onQueryChanged("fail")

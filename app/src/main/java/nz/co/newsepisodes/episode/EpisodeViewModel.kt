@@ -1,6 +1,7 @@
 package nz.co.newsepisodes.episode
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -8,8 +9,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import nz.co.newsepisodes.common.di.CoroutineDispatchers
-import nz.co.newsepisodes.common.di.dispatcherScope
 import nz.co.newsepisodes.common.usecase.GetEpisodesUseCase
 import nz.co.newsepisodes.common.usecase.SearchEpisodesUseCase
 import kotlin.time.Duration.Companion.milliseconds
@@ -17,10 +16,7 @@ import kotlin.time.Duration.Companion.milliseconds
 class EpisodeViewModel(
     private val getEpisodes: GetEpisodesUseCase,
     private val searchEpisodes: SearchEpisodesUseCase,
-    dispatchers: CoroutineDispatchers,
 ) : ViewModel() {
-
-    private val dispatcherScope = dispatcherScope(dispatchers)
 
     private val _uiState = MutableStateFlow(EpisodeUiState())
     val uiState: StateFlow<EpisodeUiState> = _uiState.asStateFlow()
@@ -30,7 +26,7 @@ class EpisodeViewModel(
     }
 
     fun loadEpisodes() {
-        dispatcherScope.launch {
+        viewModelScope.launch {
             _uiState.update { it.copy(status = EpisodeUiState.Status.Loading) }
 
             getEpisodes()
@@ -52,7 +48,7 @@ class EpisodeViewModel(
     }
 
     fun onQueryChanged(query: String) {
-        dispatcherScope.launch {
+        viewModelScope.launch {
             _uiState.update { it.copy(
                 query = query,
                 status = EpisodeUiState.Status.Loading

@@ -4,6 +4,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.withContext
+import nz.co.newsepisodes.common.di.CoroutineDispatchers
 import nz.co.newsepisodes.common.model.Episode
 
 interface EpisodeRepository {
@@ -13,7 +15,9 @@ interface EpisodeRepository {
     suspend fun toggleSaved(id: String)
 }
 
-class EpisodeRepositoryImpl : EpisodeRepository {
+class EpisodeRepositoryImpl(
+    private val dispatchers: CoroutineDispatchers,
+) : EpisodeRepository {
 
     private val allEpisodes = MutableStateFlow(
         listOf(
@@ -79,10 +83,10 @@ class EpisodeRepositoryImpl : EpisodeRepository {
 
     override fun getEpisodes(): Flow<List<Episode>> = allEpisodes.map { list -> list }
 
-    override suspend fun search(query: String): List<Episode> {
+    override suspend fun search(query: String): List<Episode> = withContext(dispatchers.io) {
         val value = query.trim().lowercase()
         val list = allEpisodes.value
-        return if (value.isEmpty()) {
+        if (value.isEmpty()) {
             list
         } else {
             list.filter {
@@ -93,10 +97,11 @@ class EpisodeRepositoryImpl : EpisodeRepository {
         }
     }
 
-    override suspend fun getEpisode(id: String): Episode? =
+    override suspend fun getEpisode(id: String): Episode? = withContext(dispatchers.io) {
         allEpisodes.value.find { it.id == id }
+    }
 
-    override suspend fun toggleSaved(id: String) {
+    override suspend fun toggleSaved(id: String) = withContext(dispatchers.io) {
         allEpisodes.update { list ->
             list.map { episode ->
                 if (episode.id == id) episode.copy(isSaved = !episode.isSaved) else episode

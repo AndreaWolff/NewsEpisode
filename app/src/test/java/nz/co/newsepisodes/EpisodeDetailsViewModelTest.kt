@@ -26,12 +26,6 @@ import org.mockito.kotlin.whenever
 class EpisodeDetailsViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
 
-    private val dispatchers = object : CoroutineDispatchers {
-        override val main = testDispatcher
-        override val io = testDispatcher
-        override val default = testDispatcher
-    }
-
     @Mock
     private lateinit var getEpisode: GetEpisodeUseCase
 
@@ -60,7 +54,7 @@ class EpisodeDetailsViewModelTest {
     fun initialLoad_emitsSuccess() = runTest(testDispatcher) {
         whenever(getEpisode("1")).thenReturn(sampleEpisode)
 
-        viewModel = EpisodeDetailsViewModel("1", getEpisode, toggleSaved, dispatchers)
+        viewModel = EpisodeDetailsViewModel("1", getEpisode, toggleSaved)
         testDispatcher.scheduler.advanceUntilIdle()
 
         val state = viewModel.uiState.value
@@ -73,7 +67,7 @@ class EpisodeDetailsViewModelTest {
     fun onSaveClicked_callsToggleSaved() = runTest {
         whenever(getEpisode("1")).thenReturn(sampleEpisode)
 
-        viewModel = EpisodeDetailsViewModel("1", getEpisode, toggleSaved, dispatchers)
+        viewModel = EpisodeDetailsViewModel("1", getEpisode, toggleSaved)
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.onSavedClicked()
@@ -86,7 +80,7 @@ class EpisodeDetailsViewModelTest {
     fun initialLoad_error_emitsErrorState() = runTest(testDispatcher) {
         whenever(getEpisode("1")).thenThrow(RuntimeException("Not found"))
 
-        viewModel = EpisodeDetailsViewModel("1", getEpisode, toggleSaved, dispatchers)
+        viewModel = EpisodeDetailsViewModel("1", getEpisode, toggleSaved)
         testDispatcher.scheduler.advanceUntilIdle()
 
         val state = viewModel.uiState.value

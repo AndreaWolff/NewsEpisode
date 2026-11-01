@@ -18,15 +18,15 @@ import org.koin.dsl.module
 val appModule = module {
     single<CoroutineDispatchers> { CoroutineDispatchersImpl() }
 
-    single<EpisodeRepository> { EpisodeRepositoryImpl() }
+    single<EpisodeRepository> { EpisodeRepositoryImpl(get()) }
 
     factory<GetEpisodesUseCase> { GetEpisodesUseCaseImpl(get()) }
     factory<SearchEpisodesUseCase> { SearchEpisodesUseCaseImpl(get()) }
     factory<GetEpisodeUseCase> { GetEpisodeUseCaseImpl(get()) }
     factory<ToggleSavedUseCase> { ToggleSavedUseCaseImpl(get()) }
 
-    viewModel { EpisodeViewModel(get(), get(), get()) }
+    viewModel { EpisodeViewModel(get(), get()) }
     viewModel { params ->
-        EpisodeDetailsViewModel(params.get(), get(), get(), get())
+        EpisodeDetailsViewModel(params.get(), get(), get())
     }
 }
